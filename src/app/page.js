@@ -138,9 +138,9 @@ export default function Page() {
   const save = async (doc, done) => {
     const n = { ...doc }; if ("source" in n && !S[n.source]) n.source = Object.keys(S)[0];["amount", "paid", "cost"].forEach(k => k in n && (n[k] = +n[k] || 0));
     const r = await call(n._id ? "PUT" : "POST", n);
-    r.ok ? (done(), load()) : setMsg("Save failed: " + (r.error || "check /api/projects PUT/POST"));
+    if (r.ok) { done(); load(); } else { setMsg("Save failed: " + (r.error || "check /api/projects PUT/POST")); }
   };
-  const del = async id => { if (confirm("Delete this entry?")) { const r = await call("DELETE", { _id: id }); r.ok ? load() : setMsg("Delete failed: " + (r.error || "")); } };
+  const del = async id => { if (confirm("Delete this entry?")) { const r = await call("DELETE", { _id: id }); if (r.ok) { load(); } else { setMsg("Delete failed: " + (r.error || "")); } } };
 
   const addSrc = async e => {
     e.preventDefault(); const name = newSrc.trim(); if (!name) return;
@@ -151,7 +151,7 @@ export default function Page() {
   };
   const renameSrc = async () => {
     const d = srcDocs.find(x => x.key === src), n = prompt("Rename source", d?.name)?.trim();
-    if (n) { const r = await call("PUT", { _id: d._id, name: n }); r.ok ? load() : setMsg("Rename failed: " + (r.error || "")); }
+    if (n) { const r = await call("PUT", { _id: d._id, name: n }); if (r.ok) { load(); } else { setMsg("Rename failed: " + (r.error || "")); } }
   };
   const removeSrc = async () => {
     const d = srcDocs.find(x => x.key === src), rest = srcDocs.filter(x => x.key !== src);
@@ -187,7 +187,7 @@ export default function Page() {
   const tasks = items.filter(x => x.type === "task"), wk = new Date(Date.now() + 7 * 864e5).toLocaleDateString("en-CA");
   const openT = tasks.filter(t => !t.done).sort((a, b) => ((a.due || "9") < (b.due || "9") ? -1 : 1));
   const nOver = openT.filter(t => t.due && t.due < today).length, nToday = openT.filter(t => t.due === today).length, nSoon = openT.filter(t => t.due > today && t.due <= wk).length;
-  const toggle = async t => { const r = await call("PUT", { _id: t._id, done: !t.done }); r.ok ? load() : setMsg("Update failed: " + (r.error || "")); };
+  const toggle = async t => { const r = await call("PUT", { _id: t._id, done: !t.done }); if (r.ok) { load(); } else { setMsg("Update failed: " + (r.error || "")); } };
   const editK = t => { setTk({ ...t }); setShowK(true); setSrc(t.source); setTab("Sources"); window.scrollTo?.(0, 0); };
   const Task = (t, showSrc) => {
     const late = !t.done && t.due && t.due < today, td = t.due === today;
